@@ -1,0 +1,31 @@
+FROM openjdk:8u141-jdk
+
+ENV NGINX_VERSION=1.12.1
+ENV NGINX_CLOJURE_VERSION=0.4.5
+
+RUN \
+  apt-get update && \
+  apt-get install -y gcc g++ zlib1g-dev make less vim sudo zip libpcre3 libpcre3-dev openssl libssl-dev iptables net-tools && \
+  rm -rf /var/lib/apt/lists/*
+
+ENV LEIN_ROOT=true
+ADD https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein /bin/lein
+ADD http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz /nginx.tar.gz
+ADD https://github.com/nginx-clojure/nginx-clojure/archive/v${NGINX_CLOJURE_VERSION}.tar.gz /nginx-clojure.tar.gz
+
+RUN chmod a+x /bin/lein
+RUN lein
+RUN tar -zxvf /nginx.tar.gz && rm /nginx.tar.gz && mv /nginx-${NGINX_VERSION} /nginx
+RUN tar -zxvf /nginx-clojure.tar.gz && rm /nginx-clojure.tar.gz && mv /nginx-clojure-${NGINX_CLOJURE_VERSION} /nginx-clojure
+RUN cd /nginx; ./configure --with-debug --add-module=/nginx-clojure/src/c --with-http_ssl_module --with-http_realip_module; make; make install
+RUN cd /nginx-clojure; lein jar
+RUN mkdir /jars
+RUN cp /root/.m2/repository/org/clojure/clojure/1.5.1/clojure-1.5.1.jar /jars/clojure.jar
+RUN rm /usr/local/nginx/html/*
+
+WORKDIR /logs
+
+RUN ln -s /usr/local/nginx/sbin/nginx /usr/local/bin/nginx
+
+EXPOSE 80
+EXPOSE 443

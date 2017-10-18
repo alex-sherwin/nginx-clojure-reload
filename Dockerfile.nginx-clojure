@@ -17,6 +17,10 @@ RUN chmod a+x /bin/lein
 RUN lein
 RUN tar -zxvf /nginx.tar.gz && rm /nginx.tar.gz && mv /nginx-${NGINX_VERSION} /nginx
 RUN tar -zxvf /nginx-clojure.tar.gz && rm /nginx-clojure.tar.gz && mv /nginx-clojure-${NGINX_CLOJURE_VERSION} /nginx-clojure
+
+# MONKEY PATCH nginx-clojure src/c/ngx_http_clojure_module.c with necessary bug fixes
+ADD patch/src/c/ngx_http_clojure_module.c /nginx-clojure/src/c/ngx_http_clojure_module.c
+
 RUN cd /nginx; ./configure --with-debug --add-module=/nginx-clojure/src/c --with-http_ssl_module --with-http_realip_module; make; make install
 RUN cd /nginx-clojure; lein jar
 RUN mkdir /jars

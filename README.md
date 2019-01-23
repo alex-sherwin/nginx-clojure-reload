@@ -1,3 +1,9 @@
+# UPDATE
+
+This repo was used to reproduce & help fix https://github.com/nginx-clojure/nginx-clojure/issues/118
+
+## INFO
+
 A sample project which demonstrates `nginx-clojure` hanging indefinitely inside a Java `rewrite_handler`
 
 ## BUILDING
